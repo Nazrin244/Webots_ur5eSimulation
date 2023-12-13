@@ -1,26 +1,30 @@
 from controller import Robot
-from ikpy.chain import Chain
+import time
 
 robot = Robot()
 TIME_STEP = 32
+MAX_STEPS = 100
 
-#create URDF 
-with open("C:\\YEAR3\\FYP\\UR5e.urdf", "w") as file:  
-    file.write(robot.getUrdf()) 
-#create chain
-ur5e = Chain.from_urdf_file("C:\\YEAR3\\FYP\\UR5e.urdf", active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
+# Create URDF
+with open("C:\\YEAR3\\FYP\\UR5e.urdf", "w") as file:
+    file.write(robot.getUrdf())
+    
+# Create Inverse Kinematic chain
+from ikpy.link import OriginLink, URDFLink
+from ikpy.chain import Chain
 
-#get motors
+ur5e = Chain.from_urdf_file("C:\\YEAR3\\FYP\\UR5e.urdf",
+                            active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
+print(ur5e.links)
+
 ur_motors = [
     robot.getDevice("shoulder_pan_joint"),
     robot.getDevice("shoulder_lift_joint"),
     robot.getDevice("elbow_joint"),
     robot.getDevice("wrist_1_joint"),
     robot.getDevice("wrist_2_joint"),
-    robot.getDevice("wrist_3_joint"),
-]
-
-#get position sensors
+    robot.getDevice("wrist_3_joint")]
+    
 position_sensors = [
     robot.getDevice("shoulder_pan_joint_sensor"),
     robot.getDevice("shoulder_lift_joint_sensor"),
@@ -30,49 +34,76 @@ position_sensors = [
     robot.getDevice("wrist_3_joint_sensor"),
 ]
 
-# set initial position and velocities
-for motor in ur_motors:
-    motor.setPosition(0)  # set position to 0 for all motors in list
-    motor.setVelocity(1.0)  # set velocity for movement
-    
+joint_names = [
+    'base_link',
+    'shoulder_pan_joint',
+    'shoulder_lift_joint',
+    'elbow_joint',
+    'wrist_1_joint',
+    'wrist_2_joint',
+    'wrist_3_joint',
+    'wrist_3_link_ROBOTIQ_3f_Gripper_joint',
+    'finger_middle_joint_1',
+    'finger_middle_joint_2',
+    'finger_middle_joint_3'
+]
+
+#enable sensors
 for sensor in position_sensors:
     sensor.enable(TIME_STEP)
 
-#inverse kinematics function
-def calculate_inverse_kinematics(x, y, z):
-    IKPY_MAX_ITERATIONS = 4
-    # Create initial position using joint positions
-    initial_position = [0] + [m.getPositionSensor().getValue() for m in ur_motors] + [0, 1, 1, -1]
-    # Calculate inverse kinematics
-    ikResults = ur5e.inverse_kinematics([1, 1, 1], max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
-    return ikResults  #skips the first element
+for motor in ur_motors:
+    motor.setPosition(0.0) #set position to 0 for all motors in list
+    motor.setVelocity(1.0) #set velocity for movement
+   
+#joint position function
+def move_to_joint_position(target_positions):
+    for target_position in target_positions:
+        # move arm toward the target position
+        for i, motor in enumerate(ur_motors):
+            motor.setPosition(target_position[i])
+            
+        #step through simulation using MAX_STEPS
+        for step in range(MAX_STEPS):
+            robot.step(TIME_STEP)
 
-
-#move to joint position function
-def move_to_joint_positions(x, y, z):
-    # Calculate inverse kinematics
-    ikResults = calculate_inverse_kinematics(x, y, z)
-    # Set target position to motors using ik_results
-    for i, motor in enumerate(ur_motors):
-        motor.setPosition(ikResults[i])
+            #check if the robot is close to target position
+            if all(abs(motor.getTargetPosition() - motor.getPositionSensor().getValue()) < 0.1 for motor in ur_motors):
+                print("Robot reached the target joint position.")
+                break #exit loop
         
+        else:
+            print("Max steps reached. Robot did not reach the target joint position.")
+            return  # Exit the outer loop if max steps are reached without reaching the target
+                    
+        #joint_positions = [sensor.getValue() for sensor in position_sensors]
+        #print("Joint positions:", joint_positions)
+    
+#establish target positions
+target_positions = [
+    [0, -1.57, 1.57, -1.57, -1.57, 0.0],
+    [0.0, -1.0, 1.0, -1.0, -1.0, 0.0],
+    [1.0, -0.5, 1.0, -0.5, -1.0, 0.5],
+    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0]
+]
 
-#move to end effector function
+#function loop
+move_to_joint_position(target_positions)
+
+#end effector function
 def move_end_effector(x, y, z):
-    # Calls inverse kinematics function
-    ikResults = calculate_inverse_kinematics(x, y, z)
-    #set target position using ik_results 
+    # Inverse kinematics calculation
+    IKPY_MAX_ITERATIONS = 4
+    initial_position = [0] + [m.getPositionSensor().getValue() for m in ur_motors] + [0, 1, 1, -1]
+    ikResults = ur5e.inverse_kinematics([x, y, z], max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
+
+    # setting positions based on Inverse Kinematics
     for i, motor in enumerate(ur_motors):
-        motor.setPosition(ikResults[i])
+        motor.setPosition(ikResults[i + 1]) #skip first element
 
-
-# Main Control
 while robot.step(TIME_STEP) != -1:
-    # Move arm toward target_position (x=0.5, y=-0.3, z=0.5)
-    move_to_joint_positions(0.5, 0.3, 0.5)
-    
+    # Move arm toward target position(x,y,z)
+    move_end_effector(0.9, 0.2, 0.5)
 
-    # Print joint positions
     joint_positions = [sensor.getValue() for sensor in position_sensors]
-    print("Arm Joint positions:", joint_positions)
-    
+    print("Joint positions:", joint_positions)
