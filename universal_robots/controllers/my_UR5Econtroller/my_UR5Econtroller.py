@@ -100,6 +100,7 @@ def move_end_effector(x, y, z):
     # setting positions based on Inverse Kinematics
     for i, motor in enumerate(ur_motors):
         motor.setPosition(ikResults[i + 1]) #skip first element
+        #call from other function 
 
 while robot.step(TIME_STEP) != -1:
     # Move arm toward target position(x,y,z)
@@ -107,3 +108,17 @@ while robot.step(TIME_STEP) != -1:
 
     joint_positions = [sensor.getValue() for sensor in position_sensors]
     print("Joint positions:", joint_positions)
+    
+#Camera:
+#open cv package 
+#camera sensor
+# can add as a node
+#camera getimage commnd
+#open cv to use image procesing algorithms to detect cube 
+
+#TODO:
+#restructure to blocking behaviours
+#introduce the object, hardcode to grab it, place in box
+#use functions that i have to move between positions 
+#intermediate positions, way points can define like a list
+#orientation of the robot
