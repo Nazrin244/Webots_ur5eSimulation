@@ -1,5 +1,6 @@
-from controller import Robot
+from controller import Robot, Camera
 import time
+from time import sleep
 
 robot = Robot()
 TIME_STEP = 32
@@ -47,7 +48,13 @@ joint_names = [
     'finger_middle_joint_2',
     'finger_middle_joint_3'
 ]
-
+#establish target positions
+target_positions = [
+    [0, -1.57, 1.57, -1.57, -1.57, 0.0],
+    [0.0, -1.0, 1.0, -1.0, -1.0, 0.0],
+    [1.0, -0.5, 1.0, -0.5, -1.0, 0.5],
+    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0]
+]
 #enable sensors
 for sensor in position_sensors:
     sensor.enable(TIME_STEP)
@@ -63,6 +70,8 @@ def move_to_joint_position(target_positions):
         for i, motor in enumerate(ur_motors):
             motor.setPosition(target_position[i])
             
+        sleep(1) #blocking behaviour
+        
         #step through simulation using MAX_STEPS
         for step in range(MAX_STEPS):
             robot.step(TIME_STEP)
@@ -71,21 +80,9 @@ def move_to_joint_position(target_positions):
             if all(abs(motor.getTargetPosition() - motor.getPositionSensor().getValue()) < 0.1 for motor in ur_motors):
                 print("Robot reached the target joint position.")
                 break #exit loop
-        
         else:
             print("Max steps reached. Robot did not reach the target joint position.")
             return  # Exit the outer loop if max steps are reached without reaching the target
-                    
-        #joint_positions = [sensor.getValue() for sensor in position_sensors]
-        #print("Joint positions:", joint_positions)
-    
-#establish target positions
-target_positions = [
-    [0, -1.57, 1.57, -1.57, -1.57, 0.0],
-    [0.0, -1.0, 1.0, -1.0, -1.0, 0.0],
-    [1.0, -0.5, 1.0, -0.5, -1.0, 0.5],
-    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0]
-]
 
 #function loop
 move_to_joint_position(target_positions)
@@ -104,20 +101,20 @@ def move_end_effector(x, y, z):
 
 while robot.step(TIME_STEP) != -1:
     # Move arm toward target position(x,y,z)
-    move_end_effector(0.9, 0.2, 0.5)
+    move_end_effector(0.9, 0.2, 0.5)  
 
     joint_positions = [sensor.getValue() for sensor in position_sensors]
     print("Joint positions:", joint_positions)
-    
+   
 #Camera:
-#open cv package 
+#open cv package - done
 #camera sensor
 # can add as a node
 #camera getimage commnd
 #open cv to use image procesing algorithms to detect cube 
 
 #TODO:
-#restructure to blocking behaviours
+#restructure to blocking behaviours - nearly done
 #introduce the object, hardcode to grab it, place in box
 #use functions that i have to move between positions 
 #intermediate positions, way points can define like a list
