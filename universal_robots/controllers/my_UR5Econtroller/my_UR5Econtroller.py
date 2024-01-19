@@ -108,8 +108,7 @@ while robot.step(TIME_STEP) != -1:
    
 #Camera:
 #open cv package - done
-#camera sensor
-# can add as a node
+#camera sensor - can add as a node
 #camera getimage commnd
 #open cv to use image procesing algorithms to detect cube 
 
