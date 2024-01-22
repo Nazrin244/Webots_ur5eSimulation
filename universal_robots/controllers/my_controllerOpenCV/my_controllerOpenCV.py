@@ -3,10 +3,12 @@ import numpy as np
 import cv2
 import time
 from time import sleep
+from ikpy.link import OriginLink, URDFLink
+from ikpy.chain import Chain
 
 robot = Robot()
 TIME_STEP = 32
-MAX_STEPS = 1000
+MAX_STEPS = 150
 
 # Create camera
 camera = robot.getDevice('camera')
@@ -33,9 +35,6 @@ joint_names = [
 ]
 
 # Create IK chain
-from ikpy.link import OriginLink, URDFLink
-from ikpy.chain import Chain
-
 ur5e = Chain.from_urdf_file("C:\\YEAR3\\FYP\\UR5e.urdf",
                             active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
 #print(ur5e.links)
@@ -90,11 +89,12 @@ def move_to_joint_position(target_positions):
             # Get image from the camera
             image = camera.getImageArray()
 
-            if image is not None:
+            if image is not None: #if image is valid
                 # Convert the image array to an OpenCV format
                 image = np.array(image, dtype=np.uint8)
 
                 # display the image using OpenCV
+                image = cv2.resize(image, (800, 600))
                 cv2.imshow("Camera Image", image)
                 cv2.waitKey(1)  # delay
 
@@ -104,12 +104,33 @@ def move_to_joint_position(target_positions):
                 break #exit loop
         else:
             print("Max steps reached. Robot did not reach the target joint position.")
-            return  # Exit the outer loop if max steps are reached without reaching the target
+            return  # Exit the loop if max steps are reached without reaching the target
 
-#function loop
+# function loop
 move_to_joint_position(target_positions)
 
-# Function to move the end effector to a specific position (x, y, z) and capture image
+# Function to detect a yellow object
+def detect_yellow_object(image):
+    # Convert the image from BGR to HSV
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Define the lower and upper bounds for the yellow color
+    lower_yellow = np.array([90, 100, 100])
+    upper_yellow = np.array([110, 255, 255])
+
+    # Threshold image to get only yellow colors
+    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+
+    # Find contours in the mask
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Check if any contours are found
+    if contours:
+        return True  # Found a yellow object
+    else:
+        return False  # No yellow object found
+
+# Function to move the end effector to a specific position (x, y, z)
 def move_end_effector(x, y, z):
     # Inverse kinematics calculation
     IKPY_MAX_ITERATIONS = 4
@@ -125,30 +146,34 @@ def move_end_effector(x, y, z):
         # Wait for the arm to reach the target position
         sleep(1)
 
-        # Step through simulation using MAX_STEPS
-        for step in range(MAX_STEPS):
-            robot.step(TIME_STEP)
+# Step through simulation
+    for step in range(MAX_STEPS):
+        robot.step(TIME_STEP)
 
-            # Get image from the camera
-            image = camera.getImageArray()
+        # Get image from the camera
+        image = camera.getImageArray()
 
-            if image is not None:
-                # Convert image array to an OpenCV format
-                image = np.array(image, dtype=np.uint8)
+        if image is not None:
+            # Convert image array to an OpenCV format
+            image = np.array(image, dtype=np.uint8)
 
-                # display image using OpenCV
-                cv2.imshow("Camera Image", image)
-                cv2.waitKey(1)  #delay
+            # Resize the image
+            image = cv2.resize(image, (800, 600))
 
-            # Check if the robot is close to the target position
-            if all(abs(motor.getTargetPosition() - motor.getPositionSensor().getValue()) < 0.1 for motor in ur_motors):
-                print("Robot reached the target end effector position.")
-                break  # Exit loop if the target position is reached
-        else:
-            print("Max steps reached. Robot did not reach the target end effector position.")
-            
+            # Display image using OpenCV
+            cv2.imshow("Camera Image", image)
+            cv2.waitKey(1)  # delay
+
+            # Check if a yellow object is detected
+            if detect_yellow_object(image):
+                print("Found yellow object!")
+                break  # Exit loop if a yellow object is found
+
+    else:
+        print("Max steps reached. No yellow object found.")
+
 # Function loop
-    move_end_effector(0.30, -0.20, 0.77)
+move_end_effector(0.30, -0.20, 0.77)
 
 joint_positions = [sensor.getValue() for sensor in position_sensors]
 print("Joint positions:", joint_positions)
