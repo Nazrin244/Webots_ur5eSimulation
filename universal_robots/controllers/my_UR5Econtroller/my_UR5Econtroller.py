@@ -1,6 +1,9 @@
 from controller import Robot, Camera
 import time
 from time import sleep
+import numpy as np
+from ikpy.link import OriginLink, URDFLink
+from ikpy.chain import Chain
 
 robot = Robot()
 TIME_STEP = 32
@@ -9,10 +12,6 @@ MAX_STEPS = 100
 # Create URDF
 with open("C:\\YEAR3\\FYP\\UR5e.urdf", "w") as file:
     file.write(robot.getUrdf())
-    
-# Create Inverse Kinematic chain
-from ikpy.link import OriginLink, URDFLink
-from ikpy.chain import Chain
 
 ur5e = Chain.from_urdf_file("C:\\YEAR3\\FYP\\UR5e.urdf",
                             active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
@@ -53,7 +52,8 @@ target_positions = [
     [0, -1.57, 1.57, -1.57, -1.57, 0.0],
     [0.0, -1.0, 1.0, -1.0, -1.0, 0.0],
     [1.0, -0.5, 1.0, -0.5, -1.0, 0.5],
-    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0]
+    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0],
+    [0, -1.57, 1.57, -1.57, -1.57, 0.0]
 ]
 #enable sensors
 for sensor in position_sensors:
@@ -87,28 +87,43 @@ def move_to_joint_position(target_positions):
 #function loop
 move_to_joint_position(target_positions)
 
-#end effector function
+# Function to move the end effector to a specific position (x, y, z)
 def move_end_effector(x, y, z):
     # Inverse kinematics calculation
     IKPY_MAX_ITERATIONS = 4
     initial_position = [0] + [m.getPositionSensor().getValue() for m in ur_motors] + [0, 1, 1, -1]
     ikResults = ur5e.inverse_kinematics([x, y, z], max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
 
-    # setting positions based on Inverse Kinematics
-    for i, motor in enumerate(ur_motors):
-        motor.setPosition(ikResults[i + 1]) #skip first element
-        #call from other function 
+    # Check if the inverse kinematics solution is valid
+    if ikResults is not None:
+        # Setting positions based on Inverse Kinematics
+        for i, motor in enumerate(ur_motors):
+            motor.setPosition(ikResults[i + 1])  # Skip the first element
 
-while robot.step(TIME_STEP) != -1:
-    # Move arm toward target position(x,y,z)
-    move_end_effector(0.9, 0.2, 0.5)  
+        # Wait for the arm to reach the target position
+        sleep(1)
 
-    joint_positions = [sensor.getValue() for sensor in position_sensors]
-    print("Joint positions:", joint_positions)
+        # Step through simulation using MAX_STEPS
+        for step in range(MAX_STEPS):
+            robot.step(TIME_STEP)
+
+            # Check if the robot is close to the target position
+            if all(abs(motor.getTargetPosition() - motor.getPositionSensor().getValue()) < 0.1 for motor in ur_motors):
+                print("Robot reached the target end effector position.")
+                break  # Exit loop if the target position is reached
+        else:
+            print("Max steps reached. Robot did not reach the target end effector position.")
+
+# Function loop
+move_end_effector(0.47, 0, 0.77)
+
+joint_positions = [sensor.getValue() for sensor in position_sensors]
+print("Joint positions:", joint_positions)
    
 #Camera:
 #open cv package - done
-#camera sensor - can add as a node
+#camera sensor
+# can add as a node
 #camera getimage commnd
 #open cv to use image procesing algorithms to detect cube 
 

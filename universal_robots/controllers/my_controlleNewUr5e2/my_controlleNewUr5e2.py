@@ -70,7 +70,7 @@ for motor in ur_motors:
 
 while robot.step(TIME_STEP) != -1:
     # Move arm toward target_position (x=0.5, y=-0.3, z=0.5)
-    move_end_effector(0.9, 0.2, 0.5)
+    move_end_effector(0.2, 0.2, 0.5)
 
     joint_positions = [sensor.getValue() for sensor in position_sensors]
     print("Joint positions:", joint_positions)
