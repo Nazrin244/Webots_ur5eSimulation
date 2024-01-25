@@ -1,10 +1,10 @@
 from controller import Robot
 import numpy as np
 import cv2
-import time
-from time import sleep
 from ikpy.link import OriginLink, URDFLink
 from ikpy.chain import Chain
+import time
+from time import sleep
 
 robot = Robot()
 TIME_STEP = 32
@@ -58,15 +58,6 @@ position_sensors = [
     robot.getDevice("wrist_2_joint_sensor"),
     robot.getDevice("wrist_3_joint_sensor"),
 ]
-
-#establish target positions
-target_positions = [
-    [0, -1.57, 1.57, -1.57, -1.57, 0.0],
-    [0.0, -1.0, 1.0, -1.0, -1.0, 0.0],
-    [1.0, -0.5, 1.0, -0.5, -1.0, 0.5],
-    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0],
-    [0, -1.57, 1.57, -1.57, -1.57, 0.0]
-]
 #enable sensors
 for sensor in position_sensors:
     sensor.enable(TIME_STEP)
@@ -74,7 +65,12 @@ for sensor in position_sensors:
 for motor in ur_motors:
     motor.setPosition(0.0) #set position to 0 for all motors in list
     motor.setVelocity(1.0) #set velocity for movement
-   
+    
+ #establish target positions
+target_positions = [
+    [0, -1.57, 1.57, -1.57, -1.57, 0.0]
+]  
+
 #joint position function
 def move_to_joint_position(target_positions):
     for target_position in target_positions:
@@ -94,7 +90,7 @@ def move_to_joint_position(target_positions):
                 image = np.array(image, dtype=np.uint8)
 
                 # display the image using OpenCV
-                image = cv2.resize(image, (800, 600))
+                image = cv2.resize(image, (200, 200))
                 cv2.imshow("Camera Image", image)
                 cv2.waitKey(1)  # delay
 
@@ -158,7 +154,7 @@ def move_end_effector(x, y, z):
             image = np.array(image, dtype=np.uint8)
 
             # Resize the image
-            image = cv2.resize(image, (800, 600))
+            image = cv2.resize(image, (200, 200))
 
             # Display image using OpenCV
             cv2.imshow("Camera Image", image)
