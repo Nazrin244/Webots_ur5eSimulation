@@ -296,7 +296,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="ROBOTIQ 3f Gripper">
+  <link name="ROBOTIQ_3f_Gripper">
     <visual>
       <origin xyz="0 -0.029 0" rpy="0 0 0"/>
       <geometry>
@@ -322,7 +322,7 @@
       </geometry>
     </collision>
   </link>
-  <joint name="wrist_3_link_ROBOTIQ 3f Gripper_joint" type="fixed">
+  <joint name="wrist_3_link_ROBOTIQ_3f_Gripper_joint" type="fixed">
     <parent link="wrist_3_link"/>
     <child link="ROBOTIQ 3f Gripper"/>
     <origin xyz="0 0.14 0" rpy="0 0 0"/>

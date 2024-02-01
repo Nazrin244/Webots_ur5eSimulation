@@ -55,6 +55,22 @@ for motor in ur_motors:
     motor.setPosition(0.0) #set position to 0 for all motors in list
     motor.setVelocity(1.0) #set velocity for movement
 
+# Trajectory planning and open-loop control for staying in the target orientation
+def set_orientation(target_orientation):
+    print("Staying in target orientation")
+    while True:
+        # Perform your robot's tasks here
+
+        # Set joints to the target orientation without closed-loop control
+        for motor, target_angle in zip(ur_motors, target_orientation):
+            motor.setPosition(target_angle)
+
+        # Step through simulation
+        robot.step(TIME_STEP)
+
+# Call function to stay in the target orientation
+set_orientation(target_orientation)
+
 # Function to check for the colour yellow
 def check_for_yellow(image):
     print("checking for yellow objects")
@@ -193,6 +209,3 @@ def look_for_yellow_object():
     move_end_effector(*table_center)
 # Call the function to look for yellow object
 look_for_yellow_object()
-
-#spiral search
-#move orientatio to search 
