@@ -119,7 +119,7 @@ def move_end_effector(x, y, z):
     # Inverse kinematics calculation
     IKPY_MAX_ITERATIONS = 4
     initial_position = [0] + [m.getPositionSensor().getValue() for m in ur_motors] + [0, 1, 1, -1]
-    ikResults = ur5e.inverse_kinematics([x, y, z], max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
+    ikResults = ur5e.inverse_kinematics([x, y, z], [0, 0, -1], orientation_mode="Y", max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
 
     # Check if the inverse kinematics solution is valid
     if ikResults is not None:

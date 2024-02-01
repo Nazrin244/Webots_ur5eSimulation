@@ -55,22 +55,6 @@ for motor in ur_motors:
     motor.setPosition(0.0) #set position to 0 for all motors in list
     motor.setVelocity(1.0) #set velocity for movement
 
-# Trajectory planning and open-loop control for staying in the target orientation
-def set_orientation(target_orientation):
-    print("Staying in target orientation")
-    while True:
-        # Perform your robot's tasks here
-
-        # Set joints to the target orientation without closed-loop control
-        for motor, target_angle in zip(ur_motors, target_orientation):
-            motor.setPosition(target_angle)
-
-        # Step through simulation
-        robot.step(TIME_STEP)
-
-# Call function to stay in the target orientation
-set_orientation(target_orientation)
-
 # Function to check for the colour yellow
 def check_for_yellow(image):
     print("checking for yellow objects")
@@ -129,13 +113,13 @@ def move_to_joint_position(target_positions):
 #function loop
 move_to_joint_position(target_positions)
 
-def move_end_effector(x, y, z):
-
+def move_end_effector(x, y, z, target_orientation=[0,0,0]):
     print("moving end effector")
     # Inverse kinematics calculation
     IKPY_MAX_ITERATIONS = 4
     initial_position = [0] + [m.getPositionSensor().getValue() for m in ur_motors] + [0, 1, 1, -1]
-    ikResults = ur5e.inverse_kinematics([x, y, z], max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
+    target_pose = [x, y, z] + target_orientation
+    ikResults = ur5e.inverse_kinematics(target_pose, max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
 
     # Check if the inverse kinematics solution is valid
     if ikResults is not None:
@@ -158,7 +142,8 @@ def move_end_effector(x, y, z):
             print("Max steps reached. Robot did not reach the target end effector position.")
 
 # Move end effector to the specified position
-move_end_effector(0.3, 0.5, 0.3)
+move_end_effector(0.3, 0.5, 0.3, target_orientation=[0, -1.57, 1.57, -1.57, -1.57, 0.0])
+
 
 # Add a small delay to allow the simulation to catch up
 sleep(0.1)
@@ -209,3 +194,6 @@ def look_for_yellow_object():
     move_end_effector(*table_center)
 # Call the function to look for yellow object
 look_for_yellow_object()
+
+#spiral search
+#move orientatio to search 
