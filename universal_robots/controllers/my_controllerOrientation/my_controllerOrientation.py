@@ -55,40 +55,6 @@ for motor in ur_motors:
     motor.setPosition(0.0) #set position to 0 for all motors in list
     motor.setVelocity(1.0) #set velocity for movement
 
-# Function to check for the colour yellow
-def check_for_yellow(image):
-    print("checking for yellow objects")
-    # Define lower and upper bounds for yellow color in HSV
-    lower_yellow = np.array([90, 100, 100])
-    upper_yellow = np.array([110, 255, 255])
-
-    # Convert image from BGR to HSV color space
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-    # Create a mask to extract yellow regions
-    yellow_mask = cv2.inRange(hsv_image, lower_yellow, upper_yellow)
-
-    # Check if any yellow pixels are present in the image
-    return cv2.countNonZero(yellow_mask) > 0
-
-# Capture an image from the camera
-image = camera.getImageArray()
-
-# Check if the image is not None
-if image is not None:
-    # Convert the image array to a NumPy array
-    image_np = np.array(image, dtype=np.uint8)
-
-    # Call the function to check for yellow color
-    if check_for_yellow(image_np):
-        print("Yellow color detected")
-    else:
-        print("Yellow color not detected")
-else:
-    print("Error: Unable to capture camera image")
-            # Wait for the arm to reach the target position
-    sleep(1)
-
 #joint position function
 def move_to_joint_position(target_positions):
     print("moving to joint positions")
@@ -113,14 +79,28 @@ def move_to_joint_position(target_positions):
 #function loop
 move_to_joint_position(target_positions)
 
-def move_end_effector(x, y, z, target_orientation=[0,0,0]):
+target_orientation = np.eye(3) #returns 2-dimensional array
+#[1, 0, 0]
+#[0, 1, 0]
+#[0, 0, 1]
+
+def move_end_effector(x, y, z):
     print("moving end effector")
     # Inverse kinematics calculation
     IKPY_MAX_ITERATIONS = 4
+    #set initial positions
     initial_position = [0] + [m.getPositionSensor().getValue() for m in ur_motors] + [0, 1, 1, -1]
-    target_pose = [x, y, z] + target_orientation
-    ikResults = ur5e.inverse_kinematics(target_pose, max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
+    #compute IK with position and orientation
+    ikResults = ur5e.inverse_kinematics([x, y, z], target_orientation=target_orientation, orientation_mode="all", max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
 
+    #final positions and orientations of robot
+    position = ur5e.forward_kinematics(ikResults)[:3, 3]
+    orientation = ur5e.forward_kinematics(ikResults)[:3, 0]
+    
+    #compare resulting positions and orientations with targets
+    print("Requested position: {} vs Reached position: {}".format([x, y, z], position))
+    print("Requested orientation on the Y axis: {} vs Reached orientation on the Y axis: {}".format(target_orientation, orientation))
+    
     # Check if the inverse kinematics solution is valid
     if ikResults is not None:
         # Setting positions based on Inverse Kinematics
@@ -142,58 +122,4 @@ def move_end_effector(x, y, z, target_orientation=[0,0,0]):
             print("Max steps reached. Robot did not reach the target end effector position.")
 
 # Move end effector to the specified position
-move_end_effector(0.3, 0.5, 0.3, target_orientation=[0, -1.57, 1.57, -1.57, -1.57, 0.0])
-
-
-# Add a small delay to allow the simulation to catch up
-sleep(0.1)
-
-def look_for_yellow_object():
-    print("looking for yellow objects")
-    # Define the table's center and radius
-    table_center = (0.73, 0.26, 0.37)
-
-    # Define the search areas
-    search_areas = [
-        # Area 1: x cm to the right and y cm in front of the table's center
-        (table_center[0] + 0.05, table_center[1] + 0.05, 0.1, 0.1),
-        # Area 2: x cm to the left and y cm behind the table's center
-        (table_center[0] - 0.1, table_center[1] - 0.5, 0.1, 0.1),
-        # Area 3: x cm to the left and y cm above the table's center
-        (table_center[0] - 0.025, table_center[1] + 0.75, 0.1, 0.1)
-    ]
-
-    # Move the end effector to the initial position
-    move_end_effector(*table_center)
-
-    # Loop through the search areas
-    for area in search_areas:
-        # Calculate the target position for the end effector
-        target_x, target_y, target_width, target_height = area
-        target_z = table_center[2]  # Keep the same z-coordinate as the table's center
-        move_end_effector(target_x, target_y, target_z)
-
-        # Capture an image from the camera
-        image = camera.getImageArray()
-
-        # Check if the image is not None
-        if image is not None:
-            # Convert the image array to a NumPy array
-            image_np = np.array(image, dtype=np.uint8)
-                    # Display the camera feed in a window
-            cv2.imshow('Camera Feed', image_np)
-            # Call the function to check for yellow color
-            if check_for_yellow(image_np):
-                print(f"Yellow color detected in area: {area}")
-            else:
-                print(f"Yellow color not detected in area: {area}")
-        else:
-            print("Error: Unable to capture camera image")
-
-    # Move the end effector back to the initial position
-    move_end_effector(*table_center)
-# Call the function to look for yellow object
-look_for_yellow_object()
-
-#spiral search
-#move orientatio to search 
+move_end_effector(0.2, 0.4, 0.4)
