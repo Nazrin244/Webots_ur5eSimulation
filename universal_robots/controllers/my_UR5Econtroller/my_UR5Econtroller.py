@@ -115,7 +115,7 @@ def move_end_effector(x, y, z):
             print("Max steps reached. Robot did not reach the target end effector position.")
 
 # Function loop
-move_end_effector(0.0, 0.0, 0.0)
+move_end_effector(0.5, 0.3, 0.5)
 
 joint_positions = [sensor.getValue() for sensor in position_sensors]
 print("Joint positions:", joint_positions)

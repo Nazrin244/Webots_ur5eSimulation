@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 from ikpy.link import OriginLink, URDFLink
 from ikpy.chain import Chain
+import math
+import random 
 
 robot = Robot()
 TIME_STEP = 32
@@ -19,9 +21,9 @@ camera.recognitionEnable(TIME_STEP)
 # Create URDF
 with open("C:\\YEAR3\\FYP\\UR5e.urdf", "w") as file:
     file.write(robot.getUrdf())
-
+#load  chain
 ur5e = Chain.from_urdf_file("C:\\YEAR3\\FYP\\UR5e.urdf",
-                            active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
+                            active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0])
 #print(ur5e.links)
 
 ur_motors = [
@@ -42,9 +44,40 @@ position_sensors = [
     robot.getDevice("wrist_3_joint_sensor"),
 ]
 
+finger_motors = [
+    robot.getDevice("palm_finger_1_joint"),
+    robot.getDevice("finger_1_joint_1"),
+    robot.getDevice("finger_1_joint_2"),
+    robot.getDevice("finger_1_joint_3"),
+    robot.getDevice("palm_finger_2_joint"),
+    robot.getDevice("finger_2_joint_1"),
+    robot.getDevice("finger_2_joint_2"),
+    robot.getDevice("finger_2_joint_3"),
+    robot.getDevice("finger_middle_joint_1"),
+    robot.getDevice("finger_middle_joint_2"),
+    robot.getDevice("finger_middle_joint_3"),
+]
+
+finger_sensors = [
+    robot.getDevice("palm_finger_1_joint_sensor"),
+    robot.getDevice("finger_1_joint_1_sensor"),
+    robot.getDevice("finger_1_joint_2_sensor"),
+    robot.getDevice("finger_1_joint_3_sensor"),
+    robot.getDevice("palm_finger_2_joint_sensor"),
+    robot.getDevice("finger_2_joint_1_sensor"),
+    robot.getDevice("finger_2_joint_2_sensor"),
+    robot.getDevice("finger_2_joint_3_sensor"),
+    robot.getDevice("finger_middle_joint_1_sensor"),
+    robot.getDevice("finger_middle_joint_2_sensor"),
+    robot.getDevice("finger_middle_joint_3_sensor")
+]
+
 #establish target positions
 target_positions = [  
-    [0, -1.57, 1.57, -1.57, -1.57, 0.0]
+    [0, -1.57, 1.57, -1.57, -1.57, 0.0],
+    [0.0, -1.0, 1.0, -1.0, -1.0, 0.0],
+    [1.0, -0.5, 1.0, -0.5, -1.0, 0.5],
+    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0]   
 ]
 
 #enable sensors
@@ -55,7 +88,9 @@ for motor in ur_motors:
     motor.setPosition(0.0) #set position to 0 for all motors in list
     motor.setVelocity(1.0) #set velocity for movement
 
-#joint position function
+
+
+    #joint position function
 def move_to_joint_position(target_positions):
     print("moving to joint positions")
     for target_position in target_positions:
@@ -76,13 +111,7 @@ def move_to_joint_position(target_positions):
         else:
             print("Max steps reached. Robot did not reach the target joint position.")
             return  # Exit the outer loop if max steps are reached without reaching the target
-#function loop
-move_to_joint_position(target_positions)
 
-target_orientation = np.eye(3) #returns 2-dimensional array
-#[1, 0, 0]
-#[0, 1, 0]
-#[0, 0, 1]
 
 def move_end_effector(x, y, z):
     print("moving end effector")
@@ -95,7 +124,7 @@ def move_end_effector(x, y, z):
 
     #final positions and orientations of robot
     position = ur5e.forward_kinematics(ikResults)[:3, 3]
-    orientation = ur5e.forward_kinematics(ikResults)[:3, 0]
+    orientation = ur5e.forward_kinematics(ikResults)[:3, :3]
     
     #compare resulting positions and orientations with targets
     print("Requested position: {} vs Reached position: {}".format([x, y, z], position))
@@ -120,6 +149,101 @@ def move_end_effector(x, y, z):
                 break  # Exit loop if the target position is reached
         else:
             print("Max steps reached. Robot did not reach the target end effector position.")
+            
+#function loop
+move_to_joint_position(target_positions)
 
-# Move end effector to the specified position
-move_end_effector(0.2, 0.4, 0.4)
+
+target_orientation = np.eye(3) #returns 2-dimensional array
+#[1, 0, 0]
+#[0, 1, 0]
+#[0, 0, 1]
+
+# Move end effector to the specified position (x,y,z)
+move_end_effector(0.5, 0.3, 0.5)
+
+sleep(0.1)
+
+# Function to capture an image from the camera
+def capture_image():
+    # Add try-except block for error handling
+    try:
+        image = camera.getImageArray()
+        return np.array(image, dtype=np.uint8) if image is not None else None
+    except Exception as e:
+        print(f"Error capturing camera image: {e}")
+        return None
+        
+# Function to check for the colour yellow
+def check_for_yellow(image):
+    print("checking for yellow objects")
+    # Define lower and upper bounds for yellow color in HSV
+    lower_yellow = np.array([90, 100, 100])
+    upper_yellow = np.array([110, 255, 255])
+
+    # Convert image from BGR to HSV color space
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Create a mask to extract yellow regions
+    yellow_mask = cv2.inRange(hsv_image, lower_yellow, upper_yellow)
+
+    # Check if any yellow pixels are present in the image
+    return cv2.countNonZero(yellow_mask) > 0
+    
+# Capture an image from the camera
+image = camera.getImageArray()
+
+# Check if the image is not None
+if image is not None:
+    # Convert the image array to a NumPy array
+    image_np = np.array(image, dtype=np.uint8)
+    print('image shape', image_np.shape)
+
+    # Call the function to check for yellow color
+    if check_for_yellow(image_np):
+        print("Yellow color detected")
+    else:
+        print("Yellow color not detected")
+else:
+    print("Error: Unable to capture camera image")
+            # Wait for the arm to reach the target position
+    sleep(1)
+
+
+# list of XYZ coordinates
+xyz_coordinates = [
+    (-0.1, 1.3, 0.0),
+    (-0.1, 1.2, 0.4)
+]
+
+def look_for_yellow_object(coordinates):
+    print("Looking for yellow objects")
+    
+    for coord in coordinates:
+        # Move the end effector to the specified location
+        move_end_effector(*coord)
+        
+        # Capture an image
+        image = capture_image()
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        
+        if image is not None:
+            # Display the image in a resizable OpenCV window
+            cv2.namedWindow('Camera Feed', cv2.WINDOW_NORMAL)
+            
+            # Resize the window to be bigger
+            cv2.resizeWindow('Camera Feed', 300, 300)  # Set the width and height as desired
+            
+            cv2.imshow('Camera Feed', image)
+            cv2.waitKey(1000)  # Add a delay for window display
+            
+            # Check for yellow color in the captured image
+            if check_for_yellow(image):
+                print("Yellow color detected")
+            else:
+                print("Yellow color not detected")
+        else:
+            print("Skipping processing for this area due to camera image capture error")
+
+# Call the function to look for yellow objects
+look_for_yellow_object(xyz_coordinates)
