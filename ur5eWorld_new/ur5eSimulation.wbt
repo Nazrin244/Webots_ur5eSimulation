@@ -1,0 +1,37 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/universal_robots/protos/UR5e.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/robotiq/protos/Robotiq3fGripper.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.26684118133917395 0.20328648863796878 0.9420564672453341 1.896612535032656
+  position 0.6943566682611133 -2.4772490691525313 1.5275514673163813
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+}
+UR5e {
+  hidden rotation_6 0.7606125420882355 0.6492061003463858 9.545188012024571e-06 5.306152646173509e-07
+  hidden rotation_11 0 0 -1 0.5199999994912359
+  hidden rotation_17 0 0 -1 5.16191365590357e-08
+  controller "my_ur5eSimulationcontroller"
+  toolSlot [
+    Camera {
+      recognitionColors [
+        1 1 0
+      ]
+      recognition Recognition {
+      }
+    }
+    Robotiq3fGripper {
+    }
+  ]
+}

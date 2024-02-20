@@ -23,7 +23,7 @@ with open("C:\\YEAR3\\FYP\\UR5e.urdf", "w") as file:
     file.write(robot.getUrdf())
 #load  chain
 ur5e = Chain.from_urdf_file("C:\\YEAR3\\FYP\\UR5e.urdf",
-                            active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0])
+                            active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
 #print(ur5e.links)
 
 ur_motors = [
@@ -77,7 +77,8 @@ target_positions = [
     [0, -1.57, 1.57, -1.57, -1.57, 0.0],
     [0.0, -1.0, 1.0, -1.0, -1.0, 0.0],
     [1.0, -0.5, 1.0, -0.5, -1.0, 0.5],
-    [0.5, -1.0, 1.2, -0.8, -0.8, 0.0]   
+    [0, -1.57, 1.57, -1.57, -1.57, 0.0],
+
 ]
 
 #enable sensors
@@ -89,29 +90,51 @@ for motor in ur_motors:
     motor.setVelocity(1.0) #set velocity for movement
 
 
+# Function to compute and print the orientation of the end effector
+def print_end_effector_orientation(ur_motors):
+    # Get the joint positions from the motor sensors
+    active_joint_positions = [motor.getPositionSensor().getValue() for motor in ur_motors]
 
-    #joint position function
+    # Fill inactive joint positions with zeros
+    all_joint_positions = active_joint_positions + [0] * (len(ur5e.links) - len(active_joint_positions))
+
+    # Compute the forward kinematics to get the end effector pose
+    end_effector_pose = ur5e.forward_kinematics(all_joint_positions)
+
+    # Extract the orientation matrix from the pose
+    orientation = end_effector_pose[:3, :3]
+
+    # Print the orientation
+    print("End effector orientation:")
+    print(orientation)
+    
+    
+# Joint position function
 def move_to_joint_position(target_positions):
-    print("moving to joint positions")
+    print("Moving to joint positions")
     for target_position in target_positions:
-        # move arm toward the target position
+        # Move the arm toward the target position
         for i, motor in enumerate(ur_motors):
             motor.setPosition(target_position[i])
             
-        sleep(1) #blocking behaviour
+        sleep(1)  # Blocking behavior
         
-        #step through simulation using MAX_STEPS
+        # Step through simulation using MAX_STEPS
         for step in range(MAX_STEPS):
             robot.step(TIME_STEP)
 
-            #check if the robot is close to target position
+            # Check if the robot is close to the target position
             if all(abs(motor.getTargetPosition() - motor.getPositionSensor().getValue()) < 0.1 for motor in ur_motors):
                 print("Robot reached the target joint position.")
-                break #exit loop
+                # Print the orientation of the end effector
+                print_end_effector_orientation(ur_motors)
+                break  # Exit loop
         else:
             print("Max steps reached. Robot did not reach the target joint position.")
             return  # Exit the outer loop if max steps are reached without reaching the target
 
+#function loop
+move_to_joint_position(target_positions)
 
 def move_end_effector(x, y, z):
     print("moving end effector")
@@ -150,11 +173,10 @@ def move_end_effector(x, y, z):
         else:
             print("Max steps reached. Robot did not reach the target end effector position.")
             
-#function loop
-move_to_joint_position(target_positions)
 
 
-target_orientation = np.eye(3) #returns 2-dimensional array
+target_orientation = np.eye(3) 
+#returns 2-dimensional array
 #[1, 0, 0]
 #[0, 1, 0]
 #[0, 0, 1]
@@ -178,8 +200,8 @@ def capture_image():
 def check_for_yellow(image):
     print("checking for yellow objects")
     # Define lower and upper bounds for yellow color in HSV
-    lower_yellow = np.array([90, 100, 100])
-    upper_yellow = np.array([110, 255, 255])
+    lower_yellow = np.array([65, 100, 100])
+    upper_yellow = np.array([55, 255, 255])
 
     # Convert image from BGR to HSV color space
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -212,8 +234,8 @@ else:
 
 # list of XYZ coordinates
 xyz_coordinates = [
-    (-0.1, 1.3, 0.0),
-    (-0.1, 1.2, 0.4)
+    (0.2, 0.6, 0.6),
+    (0.3, 0.5, 0.4)
 ]
 
 def look_for_yellow_object(coordinates):
@@ -247,3 +269,8 @@ def look_for_yellow_object(coordinates):
 
 # Call the function to look for yellow objects
 look_for_yellow_object(xyz_coordinates)
+
+#could hardcode the gripper ot move, see if the joints work
+#look to see if theres a motor that controls all the jonts in the gripper - research gripper
+#research camera-recognition function in webots. see if there are any methods n recognising objects.
+#fix get orientation function- fix the 
