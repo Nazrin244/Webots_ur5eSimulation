@@ -42,7 +42,6 @@ class UR5e(Robot):
             self.getDevice("finger_1_joint_1"),
             self.getDevice("finger_1_joint_2"),
             #self.getDevice("finger_1_joint_3"),
-
         ]
         
         #Set positions and velocity
@@ -50,11 +49,10 @@ class UR5e(Robot):
             motor.getPositionSensor().enable(TIME_STEP)
             motor.setVelocity(speed)
         
-
         # Initialize camera
-        camera = self.getDevice('camera')
-        camera.enable(TIME_STEP)
-        camera.recognitionEnable(TIME_STEP)
+        self.camera = self.getDevice('CAM')
+        self.camera.enable(TIME_STEP)
+        self.camera.recognitionEnable(TIME_STEP)
                     
         print('robot initialised.')
         
@@ -97,8 +95,7 @@ class UR5e(Robot):
                 motor.setPosition(ikResults[i+1])
 
         for step in range(MAX_STEPS):
-            self.step(TIME_STEP)
-            
+            self.step(TIME_STEP)   
         
            
     def grasp(self):
@@ -117,19 +114,21 @@ class UR5e(Robot):
             m.setVelocity(speed)
         for step in range(MAX_STEPS):
             self.step(TIME_STEP)
-
+            
                         
 if __name__ == '__main__':        
     robot = UR5e()
     robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_1.urdf')
     robot.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])
-    robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_2.urdf') 
-    robot.move_end_effector(0.4, 0.6, 0.5)
-    robot.grasp()
+    #robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_2.urdf') 
+    robot.move_end_effector(0.5, 0.2, 0.0) 
+    robot.grasp()     
+    robot.move_end_effector(0.1, 0.4, 0.7)
     robot.release()
-
+    
 
 #could hardcode the gripper to move, see if the joints work
 #look to see if theres a motor that controls all the jonts in the gripper - research gripper
 #research camera-recognition function in webots. see if there are any methods in recognising objects.
 #fix get orientation function
+#change ikpy to kinpy - can choose which link to control

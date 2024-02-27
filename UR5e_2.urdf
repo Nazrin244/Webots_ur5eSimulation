@@ -19,7 +19,7 @@
     <child link="shoulder_link"/>
     <axis xyz="0 0 1"/>
     <limit effort="150" lower="-6.28319" upper="6.28319" velocity="3.14"/>
-    <origin xyz="0 0 0.163" rpy="0 0 -0.000052"/>
+    <origin xyz="0 0 0.163" rpy="0 0 0.000053"/>
   </joint>
   <link name="shoulder_link">
     <visual>
@@ -52,7 +52,7 @@
     <child link="upper_arm_link"/>
     <axis xyz="0 1 0"/>
     <limit effort="150" lower="-6.28319" upper="6.28319" velocity="3.14"/>
-    <origin xyz="0 0.138 0" rpy="0 0.00104 0"/>
+    <origin xyz="0 0.138 0" rpy="0 0.001037 0"/>
   </joint>
   <link name="upper_arm_link">
     <visual>
@@ -202,7 +202,7 @@
     <child link="wrist_1_link"/>
     <axis xyz="0 1 0"/>
     <limit effort="28" lower="-6.28319" upper="6.28319" velocity="6.28"/>
-    <origin xyz="0 0 0.392" rpy="0 0.001052 0"/>
+    <origin xyz="0 0 0.392" rpy="0 0.001005 0"/>
   </joint>
   <link name="wrist_1_link">
     <visual>
@@ -235,7 +235,7 @@
     <child link="wrist_2_link"/>
     <axis xyz="0 0 1"/>
     <limit effort="28" lower="-6.28319" upper="6.28319" velocity="6.28"/>
-    <origin xyz="0 0.127 0" rpy="0 0 -1.569708"/>
+    <origin xyz="0 0.127 0" rpy="0 0 -1.569795"/>
   </joint>
   <link name="wrist_2_link">
     <visual>
@@ -268,7 +268,7 @@
     <child link="wrist_3_link"/>
     <axis xyz="0 1 0"/>
     <limit effort="28" lower="-6.28319" upper="6.28319" velocity="6.28"/>
-    <origin xyz="0 0 0.1" rpy="0 -0.000001 0"/>
+    <origin xyz="0 0 0.1" rpy="0 0.000001 0"/>
   </joint>
   <link name="wrist_3_link">
     <visual>
@@ -395,7 +395,7 @@
     <child link="finger_2_link_0"/>
     <axis xyz="0 1 -0.000007"/>
     <limit effort="100" lower="-0.192" upper="0.1784" velocity="100"/>
-    <origin xyz="-0.0455 0.0214 -0.036" rpy="3.141592 0.000009 1.571593"/>
+    <origin xyz="-0.0455 0.0214 -0.036" rpy="3.141592 0.000008 1.571593"/>
   </joint>
   <link name="finger_2_link_0">
     <visual>
@@ -416,7 +416,7 @@
     <child link="finger_2_link_1"/>
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="0.0495" upper="1.2218" velocity="100"/>
-    <origin xyz="0.02 0 0" rpy="0 0 0.000006"/>
+    <origin xyz="0.02 0 0" rpy="0 0 0.000007"/>
   </joint>
   <link name="finger_2_link_1">
     <visual>
@@ -500,7 +500,7 @@
     <child link="finger_1_link_1"/>
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="0.0495" upper="1.2218" velocity="100"/>
-    <origin xyz="0.02 0 0" rpy="0 0 0.000004"/>
+    <origin xyz="0.02 0 0" rpy="0 0 0.000005"/>
   </joint>
   <link name="finger_1_link_1">
     <visual>
@@ -558,11 +558,11 @@
       </geometry>
     </collision>
   </link>
-  <link name="camera">
+  <link name="CAM">
   </link>
-  <joint name="wrist_3_link_camera_joint" type="fixed">
+  <joint name="wrist_3_link_CAM_joint" type="fixed">
     <parent link="wrist_3_link"/>
-    <child link="camera"/>
-    <origin xyz="0 0.1 0" rpy="-1.570796 0 -1.570796"/>
+    <child link="CAM"/>
+    <origin xyz="0 0.18 0" rpy="-1.570796 0 0.000004"/>
   </joint>
 </robot>

@@ -558,11 +558,11 @@
       </geometry>
     </collision>
   </link>
-  <link name="camera">
+  <link name="CAM">
   </link>
-  <joint name="wrist_3_link_camera_joint" type="fixed">
+  <joint name="wrist_3_link_CAM_joint" type="fixed">
     <parent link="wrist_3_link"/>
-    <child link="camera"/>
-    <origin xyz="0 0.1 0" rpy="-1.570796 0 -1.570796"/>
+    <child link="CAM"/>
+    <origin xyz="0 0.18 0" rpy="-1.570796 0 0.000004"/>
   </joint>
 </robot>

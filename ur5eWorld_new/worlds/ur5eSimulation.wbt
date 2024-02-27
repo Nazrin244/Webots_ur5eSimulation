@@ -5,30 +5,39 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/universal_robots/protos/UR5e.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/robotiq/protos/Robotiq3fGripper.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/balls/protos/Ball.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.10949810378394628 0.11060110509627237 0.9878145376634236 1.5730596131944645
-  position -0.00020154324713228533 -3.1333658726110407 1.0070233062424514
+  orientation -0.029768865258540788 0.007931398096676458 0.9995253411422098 2.6211559860705425
+  position 2.612204414258958 -1.0834947911650934 0.2982211682214345
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 RectangleArena {
+  floorSize 5 5
 }
 UR5e {
   controller "my_ur5eSimulationController"
   toolSlot [
     Camera {
+      translation -2.93856e-07 0.08 0
+      rotation 0 0 1 1.5708
+      name "CAM"
       recognitionColors [
         1 1 0
       ]
+      fieldOfView 1.5
       recognition Recognition {
       }
     }
     Robotiq3fGripper {
     }
   ]
+}
+Ball {
+  translation 0.49 0.18 0.0325
 }
