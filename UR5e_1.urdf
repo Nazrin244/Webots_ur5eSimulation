@@ -565,4 +565,11 @@
     <child link="CAM"/>
     <origin xyz="0 0.18 0" rpy="-1.570796 0 0.000004"/>
   </joint>
+  <link name="DISTANCESENSOR">
+  </link>
+  <joint name="wrist_3_link_DISTANCESENSOR_joint" type="fixed">
+    <parent link="wrist_3_link"/>
+    <child link="DISTANCESENSOR"/>
+    <origin xyz="0 0.21 0" rpy="0 0 0"/>
+  </joint>
 </robot>

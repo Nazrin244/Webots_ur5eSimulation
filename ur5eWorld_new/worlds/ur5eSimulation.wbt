@@ -10,8 +10,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.029768865258540788 0.007931398096676458 0.9995253411422098 2.6211559860705425
-  position 2.612204414258958 -1.0834947911650934 0.2982211682214345
+  orientation -0.2802186343040219 0.0716534392267244 0.9572582209810323 2.6614905335443475
+  position 5.2128622228416965 -2.456368866764954 3.488386169827839
 }
 TexturedBackground {
 }
@@ -23,6 +23,13 @@ RectangleArena {
 UR5e {
   controller "my_ur5eSimulationController"
   toolSlot [
+    DistanceSensor {
+      translation 0 0.11 0
+      name "DISTANCESENSOR"
+      recognitionColors [
+        1 0.6 0
+      ]
+    }
     Camera {
       translation -2.93856e-07 0.08 0
       rotation 0 0 1 1.5708

@@ -4,6 +4,7 @@ import cv2
 from ikpy.link import OriginLink, URDFLink
 from ikpy.chain import Chain
 from time import sleep
+import math
 
 TIME_STEP = 32
 MAX_STEPS = 100
@@ -50,10 +51,16 @@ class UR5e(Robot):
             motor.setVelocity(speed)
         
         # Initialize camera
+        
         self.camera = self.getDevice('CAM')
+        self.distance_sensor = self.getDevice('DISTANCESENSOR')
+        self.distance_sensor.enable(TIME_STEP)
         self.camera.enable(TIME_STEP)
+        self.height = self.camera.getHeight()
+        self.width = self.camera.getWidth()
         self.camera.recognitionEnable(TIME_STEP)
-                    
+ 
+                 
         print('robot initialised.')
         
     def create_urdf(self, urdf_fn='C:/Users/Nazrin/Webots_ur5eSimulation/UR5e.urdf'):
@@ -95,8 +102,7 @@ class UR5e(Robot):
                 motor.setPosition(ikResults[i+1])
 
         for step in range(MAX_STEPS):
-            self.step(TIME_STEP)   
-        
+            self.step(TIME_STEP)           
            
     def grasp(self):
         print("grasping...")
@@ -105,8 +111,7 @@ class UR5e(Robot):
             m.setVelocity(speed)
         for step in range(MAX_STEPS):
             self.step(TIME_STEP)
-            
-            
+                       
     def release(self):
         print("releasing...")
         for m in self.grippers:
@@ -115,20 +120,50 @@ class UR5e(Robot):
         for step in range(MAX_STEPS):
             self.step(TIME_STEP)
             
-                        
+    def get_image(self):
+        print("caputring image...")
+        img = self.camera.getImageArray()  
+        img = np.array(img)    
+        print('image shape', img.shape)
+        img_height, img_width, channels = img.shape          
+        img = np.array(img, dtype=np.uint8)
+        img = np.reshape(img, (img_height, img_width, channels))        
+        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+        #cv2.imshow('camera image:', img)
+        #cv2.waitKey(1000)
+        #cv2.destroyAllWindows()
+        return img
+                
+    def object_detection(self):  
+        image = self.get_image() 
+        if image is not None:        
+            hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) 
+            lower_bound = np.array([5, 150, 50])
+            upper_bound = np.array([15, 255, 255])
+            mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            #cv2.imshow('original image', image)
+            #cv2.waitKey(1000)
+            #cv2.destroyAllWindows()
+            if contours:
+                print('Orange object found!')
+            else:
+                print('No orange object found')
+  
+
+                         
 if __name__ == '__main__':        
     robot = UR5e()
     robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_1.urdf')
     robot.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])
+    robot.object_detection()   
     #robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_2.urdf') 
     robot.move_end_effector(0.5, 0.2, 0.0) 
-    robot.grasp()     
+    robot.grasp()
     robot.move_end_effector(0.1, 0.4, 0.7)
     robot.release()
-    
-
-#could hardcode the gripper to move, see if the joints work
-#look to see if theres a motor that controls all the jonts in the gripper - research gripper
+   
 #research camera-recognition function in webots. see if there are any methods in recognising objects.
-#fix get orientation function
-#change ikpy to kinpy - can choose which link to control
+#opencv - create function that searches for orange object
+# with search method try doing a spiral search
+# with search method try searching by changing orientation of gripper to left and right 
