@@ -53,8 +53,6 @@ class UR5e(Robot):
         # Initialize camera
         
         self.camera = self.getDevice('CAM')
-        self.distance_sensor = self.getDevice('DISTANCESENSOR')
-        self.distance_sensor.enable(TIME_STEP)
         self.camera.enable(TIME_STEP)
         self.height = self.camera.getHeight()
         self.width = self.camera.getWidth()
@@ -138,25 +136,48 @@ class UR5e(Robot):
         image = self.get_image() 
         if image is not None:        
             hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) 
-            lower_bound = np.array([5, 150, 50])
-            upper_bound = np.array([15, 255, 255])
+            lower_bound = np.array([20, 100, 200])
+            upper_bound = np.array([30, 255, 255])
             mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            #cv2.imshow('original image', image)
-            #cv2.waitKey(1000)
-            #cv2.destroyAllWindows()
+            cv2.imshow('original image', image)
+            cv2.waitKey(1000)
+            cv2.destroyAllWindows()
+            
             if contours:
-                print('Orange object found!')
+                print('yellow object found!')
             else:
-                print('No orange object found')
+                print('No yellow object found')
   
+        
+    #def spiral_search(self):
+    #print("performing spiral search...")
 
-                         
+
+    def rotation_search(self):
+        print("performing rotational search...")
+
+        target_joint_pos_left = [0, -1.57, 1.57, -1.57, -0.6, 0.0]
+        self.move_to_joint_pos(target_joint_pos_left)
+        self.object_detection()
+        sleep(1)
+        
+        target_joint_pos_right = [0, -1.57, 1.57, -1.57, -2.5, 0.0]
+        self.move_to_joint_pos(target_joint_pos_right)
+        sleep(1)
+        self.object_detection() 
+           
+        original_position = [0, -1.57, 1.57, -1.57, -1.57, 0.0]
+        self.move_to_joint_pos(original_position)
+    
+       
 if __name__ == '__main__':        
     robot = UR5e()
     robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_1.urdf')
     robot.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])
-    robot.object_detection()   
+    #robot.spiral_search()
+    robot.rotation_search()
+    #robot.object_detection()  
     #robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_2.urdf') 
     robot.move_end_effector(0.5, 0.2, 0.0) 
     robot.grasp()
