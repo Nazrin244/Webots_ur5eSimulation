@@ -51,7 +51,6 @@ class UR5e(Robot):
             motor.setVelocity(speed)
         
         # Initialize camera
-        
         self.camera = self.getDevice('CAM')
         self.camera.enable(TIME_STEP)
         self.height = self.camera.getHeight()
@@ -75,7 +74,6 @@ class UR5e(Robot):
     def move_to_joint_pos(self, target_joint_pos, timeout=2):
         for pos, motor in zip(target_joint_pos, self.motors):
             motor.setPosition(pos)
-            
         #step through simulation using MAX_STEPS
         for step in range(timeout * 1000 // TIME_STEP):
             self.step()
@@ -83,22 +81,15 @@ class UR5e(Robot):
     def move_end_effector(self, x, y, z):
         #returns 2-dimensional array
         target_orientation = [0, 1, 0]
-
         initial_position = [0] + [m.getPositionSensor().getValue() for m in self.motors] + [0, 1, 1, -1]
         # Compute IK with position and orientation
         ikResults = self.ur5e.inverse_kinematics([x, y, z], target_orientation=target_orientation, orientation_mode="Y", max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
-    
         #final positions and orientations of robot
         position = self.ur5e.forward_kinematics(ikResults)[:3, 3]
         orientation = self.ur5e.forward_kinematics(ikResults)[:3, 1]
-
-        print("Requested orientation on the X axis: {} vs Reached orientation on the X axis: {}".format(target_orientation, orientation))
-        # We see that the chain reached its position!
-        
         if ikResults is not None:
             for i, motor in enumerate(self.motors):
                 motor.setPosition(ikResults[i+1])
-
         for step in range(MAX_STEPS):
             self.step(TIME_STEP)           
            
@@ -122,7 +113,7 @@ class UR5e(Robot):
         print("caputring image...")
         img = self.camera.getImageArray()  
         img = np.array(img)    
-        print('image shape', img.shape)
+        #print('image shape', img.shape)
         img_height, img_width, channels = img.shape          
         img = np.array(img, dtype=np.uint8)
         img = np.reshape(img, (img_height, img_width, channels))        
@@ -136,55 +127,93 @@ class UR5e(Robot):
         image = self.get_image() 
         if image is not None:        
             hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV) 
-            lower_bound = np.array([20, 100, 200])
-            upper_bound = np.array([30, 255, 255])
+            lower_bound = np.array([40, 40, 40])
+            upper_bound = np.array([80, 255, 255])
             mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            cv2.imshow('original image', image)
-            cv2.waitKey(1000)
-            cv2.destroyAllWindows()
-            
+            #cv2.imshow('original image', image)
+            #cv2.waitKey(1000)
+            #cv2.destroyAllWindows()  
             if contours:
-                print('yellow object found!')
+                print('green object found!')
+                return True
             else:
-                print('No yellow object found')
-  
-        
-    #def spiral_search(self):
-    #print("performing spiral search...")
+                print('no green object found')
+                return False
 
 
     def rotation_search(self):
         print("performing rotational search...")
-
+       
+        # Move to the left position
         target_joint_pos_left = [0, -1.57, 1.57, -1.57, -0.6, 0.0]
         self.move_to_joint_pos(target_joint_pos_left)
         self.object_detection()
-        sleep(1)
-        
+        if self.object_detection():
+        #TODO: move to position of object
+            self.grasp()
+            self.release()
+            # Return to the original position
+            original_position = [0, -1.57, 1.57, -1.57, -1.57, 0.0]
+            self.move_to_joint_pos(original_position)
+            return
+
+        # Move to the right position
         target_joint_pos_right = [0, -1.57, 1.57, -1.57, -2.5, 0.0]
         self.move_to_joint_pos(target_joint_pos_right)
-        sleep(1)
         self.object_detection() 
-           
-        original_position = [0, -1.57, 1.57, -1.57, -1.57, 0.0]
-        self.move_to_joint_pos(original_position)
+        if self.object_detection():
+        #TODO: move to position of object
+            self.grasp()
+            self.release()        
+            # Return to the original position
+            original_position = [0, -1.57, 1.57, -1.57, -1.57, 0.0]
+            self.move_to_joint_pos(original_position)
+            return
+
+
+    def grid_search(self):
+        print("implementing grid search...")
+        
+        num_steps = 5
+        step = 0.4
+        x = 0
+        y = 0
+        
+        initial_position = [-1, -1.57, 1.57, -1.57, -1.57, 0.0]
+        
+        for i in range(num_steps):
+            for j in range(num_steps):  # Increment x-coordinate
+                new_position = [initial_position[0] + j * step]
+                self.move_to_joint_pos(new_position)
+            
+            new_position_up = [new_position[0], initial_position[1], initial_position[2], initial_position[3] - i * step, initial_position[4], initial_position[5]]
+            self.move_to_joint_pos(new_position_up)
+            
+            for m in range(num_steps):
+                new_position_reverse = [new_position_up[0] - m * step, new_position_up[1], new_position_up[2], new_position_up[3], new_position_up[4], new_position_up[5]]
+                self.move_to_joint_pos(new_position_reverse)
+
+
     
-       
+                         
 if __name__ == '__main__':        
     robot = UR5e()
     robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_1.urdf')
     robot.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])
-    #robot.spiral_search()
-    robot.rotation_search()
-    #robot.object_detection()  
+    robot.grid_search()
+    robot.rotation_search()    
+    #robot.object_detection() 
     #robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_2.urdf') 
-    robot.move_end_effector(0.5, 0.2, 0.0) 
-    robot.grasp()
-    robot.move_end_effector(0.1, 0.4, 0.7)
-    robot.release()
-   
-#research camera-recognition function in webots. see if there are any methods in recognising objects.
-#opencv - create function that searches for orange object
-# with search method try doing a spiral search
-# with search method try searching by changing orientation of gripper to left and right 
+    #robot.move_end_effector(0.6, 0.2, 0.0) 
+    #robot.grasp()
+    #robot.move_end_effector(0.1, 0.4, 0.7)
+    #robot.release()
+           
+#extrensic parameters fk for camera frame 
+#RGBD sesnor - depth channel measurs distance to each pixel
+#intristic parameters should be known in webots
+#field of view to calculate focal length - research how
+#center point
+#once detection, stop search, do local adjustment 
+#method that goes down and grasps object

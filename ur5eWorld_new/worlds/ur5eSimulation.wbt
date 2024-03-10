@@ -10,8 +10,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.20871218827687169 0.11360516658658404 0.971356313918592 2.1688827967983393
-  position 2.2860359314782133 -3.3117825644561822 1.519104512930181
+  orientation -0.3146102933681872 0.1965729439440211 0.9286438720068979 2.09009021661329
+  position 2.8110499519352685 -5.103399311139845 4.516517237127869
 }
 TexturedBackground {
 }
@@ -39,8 +39,8 @@ UR5e {
   ]
 }
 Ball {
-  translation 0.33 0.8 0.0325
-  color 1 1 0
+  translation 0.33 1.18 0.0325
+  color 0 1 0
 }
 Ball {
   translation 0.51 0.16 0.0325
