@@ -10,8 +10,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.3146102933681872 0.1965729439440211 0.9286438720068979 2.09009021661329
-  position 2.8110499519352685 -5.103399311139845 4.516517237127869
+  orientation -0.39207332432708397 -0.16100799345023145 0.9057344723461945 3.853782604600243
+  position 2.919852054422045 3.253421673457271 4.105696241560574
 }
 TexturedBackground {
 }
@@ -24,13 +24,13 @@ UR5e {
   controller "my_ur5eSimulationController"
   toolSlot [
     Camera {
-      translation -2.93856e-07 0.08 0
-      rotation 0 0 1 1.5708
+      translation 3.21004e-08 0.0534728 -0.00637762
+      rotation 0.6215160372098555 0.4769060285521263 0.6215130372096759 2.25159
       name "CAM"
       recognitionColors [
         1 0.7 0
       ]
-      fieldOfView 1.5
+      fieldOfView 1
       recognition Recognition {
       }
     }

@@ -563,6 +563,6 @@
   <joint name="wrist_3_link_CAM_joint" type="fixed">
     <parent link="wrist_3_link"/>
     <child link="CAM"/>
-    <origin xyz="0 0.18 0" rpy="-1.570796 0 0.000004"/>
+    <origin xyz="0 0.153473 -0.006378" rpy="0.000004 -0.261798 -0.000002"/>
   </joint>
 </robot>

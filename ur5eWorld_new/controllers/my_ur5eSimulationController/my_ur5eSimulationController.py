@@ -87,20 +87,27 @@ class UR5e(Robot):
         #final positions and orientations of robot
         position = self.ur5e.forward_kinematics(ikResults)[:3, 3]
         orientation = self.ur5e.forward_kinematics(ikResults)[:3, 1]
+        #print("target orientation", target_orientation, orientation)
         if ikResults is not None:
             for i, motor in enumerate(self.motors):
                 motor.setPosition(ikResults[i+1])
         for step in range(MAX_STEPS):
             self.step(TIME_STEP)           
            
+           
     def grasp(self):
         print("grasping...")
+        
+        print("Lowering arm to pick up...")
+        # Lower the arm
+        self.move_to_joint_pos([0, 1.80, 1.60, -1.57, -1.57, 0.0])
+        print("Arm lowered.")
         for m in self.grippers:
             m.setPosition(0.96) 
             m.setVelocity(speed)
         for step in range(MAX_STEPS):
             self.step(TIME_STEP)
-                       
+                  
     def release(self):
         print("releasing...")
         for m in self.grippers:
@@ -171,38 +178,49 @@ class UR5e(Robot):
             self.move_to_joint_pos(original_position)
             return
 
-
     def grid_search(self):
         print("implementing grid search...")
+        x = 0.5
+        y = 0.3
+        z = 0.4
         
-        num_steps = 5
-        step = 0.4
-        x = 0
-        y = 0
+        step_size = 0.3       
+        step_up = 1
+        step = 3
         
-        initial_position = [-1, -1.57, 1.57, -1.57, -1.57, 0.0]
-        
-        for i in range(num_steps):
-            for j in range(num_steps):  # Increment x-coordinate
-                new_position = [initial_position[0] + j * step]
-                self.move_to_joint_pos(new_position)
-            
-            new_position_up = [new_position[0], initial_position[1], initial_position[2], initial_position[3] - i * step, initial_position[4], initial_position[5]]
-            self.move_to_joint_pos(new_position_up)
-            
-            for m in range(num_steps):
-                new_position_reverse = [new_position_up[0] - m * step, new_position_up[1], new_position_up[2], new_position_up[3], new_position_up[4], new_position_up[5]]
-                self.move_to_joint_pos(new_position_reverse)
+        #end_effector_position = robot.ur5e.foward_kinematics([0, -2.57, 2.37, -1.57, -1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])[:3, 3]
+        #print("End effector position:", end_effector_position)
 
-
-    
+        #self.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])   
+            
+        for i in range(1):
+            for k in range(step):
+                y -= step_size
+                self.move_end_effector(x, y, z)
+                #self.object_detection()
+                
+            for j in range(step_up):
+                x += step_size
+                self.move_end_effector(x,y,z) 
+                #self.object_detection()
+                
+            for m in range(step): 
+                y += step_size
+                self.move_end_effector(x,y,z)
+                #self.object_detection()
+                
+            for n in range(step_up):
+                x += step_size
+                self.move_end_effector(x,y,z)   
+                #self.object_detection()
+                
                          
 if __name__ == '__main__':        
     robot = UR5e()
     robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_1.urdf')
     robot.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])
     robot.grid_search()
-    robot.rotation_search()    
+    #robot.rotation_search()    
     #robot.object_detection() 
     #robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_2.urdf') 
     #robot.move_end_effector(0.6, 0.2, 0.0) 
