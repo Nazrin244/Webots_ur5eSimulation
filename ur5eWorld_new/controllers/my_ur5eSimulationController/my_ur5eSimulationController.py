@@ -36,13 +36,13 @@ class UR5e(Robot):
         self.grippers = [
             self.getDevice("finger_middle_joint_1"),
             self.getDevice("finger_middle_joint_2"),
-            #self.getDevice("finger_middle_joint_3"),
+            self.getDevice("finger_middle_joint_3"),
             self.getDevice("finger_2_joint_1"),
             self.getDevice("finger_2_joint_2"),
-            #self.getDevice("finger_2_joint_3"),
+            self.getDevice("finger_2_joint_3"),
             self.getDevice("finger_1_joint_1"),
             self.getDevice("finger_1_joint_2"),
-            #self.getDevice("finger_1_joint_3"),
+            self.getDevice("finger_1_joint_3"),
         ]
         
         #Set positions and velocity
@@ -97,16 +97,13 @@ class UR5e(Robot):
            
     def grasp(self):
         print("grasping...")
-        
-        print("Lowering arm to pick up...")
-        # Lower the arm
-        self.move_to_joint_pos([0, 1.80, 1.60, -1.57, -1.57, 0.0])
-        print("Arm lowered.")
+        self.move_to_joint_pos([0.0, -0.85, 1.30, -1.57, -1.57, 0.0])
         for m in self.grippers:
-            m.setPosition(0.96) 
+            m.setPosition(0.96)
             m.setVelocity(speed)
         for step in range(MAX_STEPS):
             self.step(TIME_STEP)
+
                   
     def release(self):
         print("releasing...")
@@ -180,48 +177,53 @@ class UR5e(Robot):
 
     def grid_search(self):
         print("implementing grid search...")
-        x = 0.5
-        y = 0.3
-        z = 0.4
+        x = 0.37
+        y = 0.5
+        z = 0.3
         
-        step_size = 0.3       
-        step_up = 1
+        step_size = 0.3      
+        step_up = 0.2
         step = 3
-        
-        #end_effector_position = robot.ur5e.foward_kinematics([0, -2.57, 2.37, -1.57, -1.57, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])[:3, 3]
-        #print("End effector position:", end_effector_position)
 
-        #self.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])   
+        self.move_end_effector(x,y,z)
             
-        for i in range(1):
+        for i in range(2):
             for k in range(step):
                 y -= step_size
                 self.move_end_effector(x, y, z)
-                #self.object_detection()
-                
-            for j in range(step_up):
-                x += step_size
+                if self.object_detection():
+                    self.grasp()
+                    return
+               
+            for j in range(1):
+                x += step_up
                 self.move_end_effector(x,y,z) 
-                #self.object_detection()
-                
+                if self.object_detection():
+                    self.grasp()
+                    return
+                    
             for m in range(step): 
                 y += step_size
                 self.move_end_effector(x,y,z)
-                #self.object_detection()
-                
-            for n in range(step_up):
-                x += step_size
+                if self.object_detection():
+                    self.grasp()
+                    return
+                    
+            for n in range(1):
+                x += step_up
                 self.move_end_effector(x,y,z)   
-                #self.object_detection()
-                
+                if self.object_detection():
+                    self.grasp()
+                    return
+                    
                          
 if __name__ == '__main__':        
     robot = UR5e()
     robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_1.urdf')
     robot.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])
-    robot.grid_search()
+    robot.grid_search()    
     #robot.rotation_search()    
-    #robot.object_detection() 
+    #robot.object_detection()     
     #robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e_2.urdf') 
     #robot.move_end_effector(0.6, 0.2, 0.0) 
     #robot.grasp()
