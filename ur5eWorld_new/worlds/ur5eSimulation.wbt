@@ -10,8 +10,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.16212364336315155 0.026324814375961497 0.986419245762535 2.823968552084916
-  position 3.454162070610315 -0.7986524936719819 1.089890113641682
+  orientation -0.08776984379622979 0.019256662617841844 0.9959546352444012 2.711363793252468
+  position 3.512862792040744 -1.1366848907007392 0.7377540581739553
 }
 TexturedBackground {
 }
@@ -21,7 +21,7 @@ RectangleArena {
   floorSize 5 5
 }
 UR5e {
-  controller "my_ur5eSimulationController"
+  controller "my_controllerKINPY"
   toolSlot [
     Camera {
       translation 3.21004e-08 0.0534728 -0.00637762
@@ -39,7 +39,7 @@ UR5e {
   ]
 }
 Ball {
-  translation 0.53 0.17 0.0325
+  translation 0.5 0.14 0.0325
   color 0 1 0
 }
 Ball {
