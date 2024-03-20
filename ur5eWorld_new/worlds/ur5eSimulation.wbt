@@ -10,8 +10,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.08776984379622979 0.019256662617841844 0.9959546352444012 2.711363793252468
-  position 3.512862792040744 -1.1366848907007392 0.7377540581739553
+  orientation -0.24929967168103082 0.08531249129052083 0.9646613149336585 2.503900753863499
+  position 4.752701453329333 -2.3372566870808815 2.3530042496098877
 }
 TexturedBackground {
 }
@@ -23,6 +23,12 @@ RectangleArena {
 UR5e {
   controller "my_controllerKINPY"
   toolSlot [
+    RangeFinder {
+      translation 0.00544102 0.00776451 0.010306
+      rotation -0.6546531970591526 -0.6546531970591526 0.377966113772731 2.41886
+      name "rangeFinder"
+      projection "cylindrical"
+    }
     Camera {
       translation 3.21004e-08 0.0534728 -0.00637762
       rotation 0.6215160372098555 0.4769060285521263 0.6215130372096759 2.25159

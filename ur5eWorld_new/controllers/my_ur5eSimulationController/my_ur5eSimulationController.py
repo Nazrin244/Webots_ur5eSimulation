@@ -10,6 +10,8 @@ TIME_STEP = 32
 MAX_STEPS = 100
 IKPY_MAX_ITERATIONS = 4
 speed = 1.0
+principal_point = (11, 15)
+focal_length = 0.0
 
 class UR5e(Robot):
     def __init__(self):
@@ -54,22 +56,21 @@ class UR5e(Robot):
         self.camera = self.getDevice('CAM')
         self.camera.enable(TIME_STEP)
         self.height = self.camera.getHeight()
-        self.width = self.camera.getWidth()
+        self.FocalLength = self.camera.getFocalLength()
         self.camera.recognitionEnable(TIME_STEP)
- 
-                 
-        print('robot initialised.')
+        self.RangeFinder = self.getDevice('rangeFinder')
+        self.RangeFinder.enable(TIME_STEP)
         
     def create_urdf(self, urdf_fn='C:/Users/Nazrin/Webots_ur5eSimulation/UR5e.urdf'):
-        with open(urdf_fn, "w") as file:
-            file.write(self.getUrdf())
+        #with open(urdf_fn, "w") as file:
+            #file.write(self.getUrdf())
             #load chain
         self.ur5e = Chain.from_urdf_file(urdf_fn,
-                            active_links_mask=[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
-        print(f'saved urdf to {urdf_fn} with joint pos {self.joint_pos()}')
-        
-        # Print out the end effector link
-        end_effector_link = self.ur5e.links[-1]  # Assuming the last link is the end effector (wrist)
+                            active_links_mask=[0, 1, 1, 1, 1, 1, 0])
+        print(f'initial joint pos {self.joint_pos()}')
+
+        # Print out end effector link
+        end_effector_link = self.ur5e.links[-1] 
         print(f"End Effector Link: {end_effector_link.name}")
         
     def joint_pos(self):
@@ -83,25 +84,24 @@ class UR5e(Robot):
             self.step()
 
     def move_end_effector(self, x, y, z):
-        #returns 2-dimensional array
-        target_orientation = [0, 1, 0]
-        initial_position = [0] + [m.getPositionSensor().getValue() for m in self.motors] + [0, 1, 1, -1]
-        # Compute IK with position and orientation
+        #set orientation and initial position
+        target_orientation = [0, 0, -1]
+        initial_position = [0] + [m.getPositionSensor().getValue() for m in self.motors]
+        #Compute IK with position and orientation
         ikResults = self.ur5e.inverse_kinematics([x, y, z], target_orientation=target_orientation, orientation_mode="Y", max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
-        #final positions and orientations of robot
+        #final positions and orientation 
         position = self.ur5e.forward_kinematics(ikResults)[:3, 3]
-        orientation = self.ur5e.forward_kinematics(ikResults)[:3, 1]
-        #print("target orientation", target_orientation, orientation)
+        orientation = self.ur5e.forward_kinematics(ikResults)[:3, 1]   
+
         if ikResults is not None:
             for i, motor in enumerate(self.motors):
                 motor.setPosition(ikResults[i+1])
         for step in range(MAX_STEPS):
-            self.step(TIME_STEP)           
-           
+            self.step(TIME_STEP) 
            
     def grasp(self):
         print("grasping...")
-        self.move_to_joint_pos([0.0, -0.85, 1.30, -1.57, -1.57, 0.0])
+        self.move_to_joint_pos([0.0, -1.06, 1.57, -1.57, -1.57, 0.0])
         for m in self.grippers:
             m.setPosition(0.96)
             m.setVelocity(speed)
@@ -143,16 +143,22 @@ class UR5e(Robot):
             #cv2.waitKey(1000)
             #cv2.destroyAllWindows()  
             if contours:
-                print('green object found!')
-                return True
+                print('yellow object found!')
+                contour = max(contours, key=cv2.contourArea)
+                x, y, w, h = cv2.boundingRect(contour)
+ 
+                center_x = x + w //2
+                center_y = y + h //2
+                
+                print('object position', center_x, center_y)
+                return center_x, center_y
             else:
-                print('no green object found')
-                return False
+                print('no yellow object found')
+                return None
 
 
     def rotation_search(self):
         print("performing rotational search...")
-       
         # Move to the left position
         target_joint_pos_left = [0, -1.57, 1.57, -1.57, -0.6, 0.0]
         self.move_to_joint_pos(target_joint_pos_left)
@@ -183,45 +189,85 @@ class UR5e(Robot):
         print("implementing grid search...")
         x = 0.37
         y = 0.5
-        z = 0.3
+        z = 0.4
         
         step_size = 0.3      
         step_up = 0.2
         step = 3
-
-        self.move_end_effector(x,y,z)
-            
+        
+        self.move_end_effector(x,y,z)  
+        
         for i in range(2):
             for k in range(step):
                 y -= step_size
                 self.move_end_effector(x, y, z)
-                #if self.object_detection():
+                if self.object_detection():
                     #self.grasp()
-                    #return    
+                    return    
             for j in range(1):
                 x += step_up
                 self.move_end_effector(x,y,z) 
-                #if self.object_detection():
+                if self.object_detection():
                     #self.grasp()
-                    #return       
+                    return       
             for m in range(step): 
                 y += step_size
                 self.move_end_effector(x,y,z)
-                #if self.object_detection():
+                if self.object_detection():
                     #self.grasp()
-                    #return      
+                    return      
             for n in range(1):
                 x += step_up
                 self.move_end_effector(x,y,z)   
-                #if self.object_detection():
+                if self.object_detection():
                     #self.grasp()
-                    #return
-                    
-                         
+                    return
+
+    def RGBD(self):
+        # Camera intrinsic parameters (example values)
+        focal_length_x = 0.3  # Example focal length in pixels (x-axis)
+        focal_length_y = 0.5  # Example focal length in pixels (y-axis)
+        principal_point_x = 11  # Example principal point (x-coordinate)
+        principal_point_y = 15  # Example principal point (y-coordinate)
+        
+        # Main loop
+        while robot.step(32) != -1:
+            # Capture RGB image
+            rgb_image = self.camera.getImage()
+            rgb_image = np.frombuffer(rgb_image, np.uint8)
+            rgb_image = np.reshape(rgb_image, (self.camera.getHeight(), self.camera.getWidth(), 4))
+            rgb_image = rgb_image[:, :, :3]  # Remove alpha channel if present
+            
+            # Capture depth image
+            depth_image = self.RangeFinder.getRangeImage()
+            depth_image = np.array(depth_image)
+            depth_image = np.reshape(depth_image, (self.RangeFinder.getHeight(), self.RangeFinder.getWidth()))
+        
+            # Detect object in the RGB image (example: assume object is at the center)
+            object_pixel_x, object_pixel_y = 11, 15  # Example object coordinates
+        
+            # Obtain depth value corresponding to the object pixel coordinates
+            object_depth = depth_image[object_pixel_y, object_pixel_x]
+        
+            # Calculate real-world coordinates (x, y, z) of the object
+            # Convert pixel coordinates to camera frame coordinates
+            camera_x = (object_pixel_x - principal_point_x) * object_depth / focal_length_x
+            camera_y = (object_pixel_y - principal_point_y) * object_depth / focal_length_y
+            # Assuming depth is along z-axis
+            camera_z = object_depth
+            
+            # Rotate to robot coordinate system if needed
+            # Example: robot_x = camera_x, robot_y = -camera_z, robot_z = camera_y
+            
+            # Print real-world location of the object
+            #print("Real-world location of the object (x, y, z):", camera_x, camera_y, camera_z)
+            self.move_end_effector(camera_x, camera_y, camera_z)
+                      
 if __name__ == '__main__':        
     robot = UR5e()
     robot.create_urdf('C:/Users/Nazrin/Webots_ur5eSimulation/UR5e.urdf')
     robot.move_to_joint_pos([0, -1.57, 1.57, -1.57, -1.57, 0.0])
+    robot.RGBD()
     robot.grid_search()    
     #robot.rotation_search()    
     #robot.object_detection()     
@@ -231,9 +277,9 @@ if __name__ == '__main__':
     #robot.move_end_effector(0.1, 0.4, 0.7)
     #robot.release()
            
-#extrensic parameters fk for camera frame 
-#RGBD sesnor - depth channel measurs distance to each pixel
-#intristic parameters should be known in webots
+#extrensic parameters fk for camera frame - camera calibration
+#intristic parameters should be known in webots - camera calibration
+#RGBD sensor - depth channel measurs distance to each pixel
 #field of view to calculate focal length - research how
 #center point
 #once detection, stop search, do local adjustment 
