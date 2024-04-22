@@ -82,11 +82,11 @@ class UR5e(Robot):
         target_orientation = [0, 0, -1]
         initial_position = [0] + [m.getPositionSensor().getValue() for m in self.motors]
         # Compute IK with position and orientation
-        ikResults = self.ur5e.inverse_kinematics([x, y, z], target_orientation=target_orientation, orientation_mode="Y", max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
+        ikResults = self.ur5e.inverse_kinematics([x, y, z], target_orientation=target_orientation, orientation_mode="Y", 
+        max_iter=IKPY_MAX_ITERATIONS, initial_position=initial_position)
         # Final positions and orientation 
         position = self.ur5e.forward_kinematics(ikResults)[:3, 3]
         orientation = self.ur5e.forward_kinematics(ikResults)[:3, 1]   
-
         if ikResults is not None:
             for i, motor in enumerate(self.motors):
                 motor.setPosition(ikResults[i+1])
@@ -107,23 +107,24 @@ class UR5e(Robot):
                 
     # Object detection funtion
     def object_detection(self):
-        print("capturing image...")
         # Capture image
         img = self.get_image()
         # Default displacement values
         displacement_x = 0.08
         displacement_y = 0.08
         pixel_to_meter = -0.07
-        
+
         if img is not None:
+            # Downsample image to process faster
+            img = cv2.resize(img, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+            # Convert HSV to colour space
             hsv_image = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
             # Establish upper and lower bounds
             lower_bound = np.array([40, 40, 40])
             upper_bound = np.array([80, 255, 255])
             # Create mask and contours
             mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
             if contours:
                 print('Green object found!')
                 return
@@ -133,10 +134,9 @@ class UR5e(Robot):
     # Rotational search function
     def rotational_search(self):
         print("performing rotational search...")
-        # Move to the left position
+        # Move to the right position
         target_joint_pos_left = [0, -1.57, 1.57, -1.57, -0.6, 0.0]
         self.move_to_joint_pos(target_joint_pos_left)
-        self.object_detection()
         if self.object_detection():
             print("Green object found!")
             # Return to the original position
@@ -144,10 +144,9 @@ class UR5e(Robot):
             self.move_to_joint_pos(original_position)
             return
 
-        # Move to the right position
-        target_joint_pos_right = [0, -1.57, 1.57, -1.57, -2.5, 0.0]
+        # Move to the left position
+        target_joint_pos_right = [0, -1.57, 1.57, -1.57, -2.9, 0.0]
         self.move_to_joint_pos(target_joint_pos_right)
-        self.object_detection() 
         if self.object_detection():
             print("Green object found!")       
             # Return to the original position
@@ -160,11 +159,11 @@ class UR5e(Robot):
         print("implementing grid search...")
         # Initial parameters
         x = 0.6
-        y = 0.5
-        z = 0.3
+        y = 1.3
+        z = 0.5
         step_size = 0.3      
-        step_up = 0.2
-        step = 3
+        step_up = 0.3
+        step = 9
         
         # Move to initial position
         self.move_end_effector(x,y,z)  
@@ -204,8 +203,8 @@ class UR5e(Robot):
         print("implementing spiral search...")
         # Initial parameters
         x_center = 0.6 
-        y_center = 0
-        z = 0.3 
+        y_center = 0.0
+        z = 0.3
         start_radius = 0.09
         num_turns = 3
         angle_increment = 1

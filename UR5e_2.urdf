@@ -19,7 +19,7 @@
     <child link="shoulder_link"/>
     <axis xyz="0 0 1"/>
     <limit effort="150" lower="-6.28319" upper="6.28319" velocity="3.14"/>
-    <origin xyz="0 0 0.163" rpy="0 0 0.884085"/>
+    <origin xyz="0 0 0.163" rpy="0 0 -0.000053"/>
   </joint>
   <link name="shoulder_link">
     <visual>
@@ -52,7 +52,7 @@
     <child link="upper_arm_link"/>
     <axis xyz="0 1 0"/>
     <limit effort="150" lower="-6.28319" upper="6.28319" velocity="3.14"/>
-    <origin xyz="0 0.138 0" rpy="0 0.647298 0"/>
+    <origin xyz="0 0.138 0" rpy="0 0.000824 0"/>
   </joint>
   <link name="upper_arm_link">
     <visual>
@@ -97,7 +97,7 @@
     <child link="forearm_link"/>
     <axis xyz="0 1 0"/>
     <limit effort="150" lower="-3.14159" upper="3.14159" velocity="3.14"/>
-    <origin xyz="0 -0.131 0.425" rpy="0 0.928148 0"/>
+    <origin xyz="0 -0.131 0.425" rpy="0 1.570028 0"/>
   </joint>
   <link name="forearm_link">
     <visual>
@@ -202,7 +202,7 @@
     <child link="wrist_1_link"/>
     <axis xyz="0 1 0"/>
     <limit effort="28" lower="-6.28319" upper="6.28319" velocity="6.28"/>
-    <origin xyz="0 0 0.392" rpy="0 0.642915 0"/>
+    <origin xyz="0 0 0.392" rpy="0 0.0008 0"/>
   </joint>
   <link name="wrist_1_link">
     <visual>
@@ -235,7 +235,7 @@
     <child link="wrist_2_link"/>
     <axis xyz="0 0 1"/>
     <limit effort="28" lower="-6.28319" upper="6.28319" velocity="6.28"/>
-    <origin xyz="0 0.127 0" rpy="0 0 -0.927503"/>
+    <origin xyz="0 0.127 0" rpy="0 0 -1.57"/>
   </joint>
   <link name="wrist_2_link">
     <visual>
@@ -296,7 +296,7 @@
       </geometry>
     </collision>
   </link>
-  <link name="ROBOTIQ_3f_Gripper">
+  <link name="ROBOTIQ 3f Gripper">
     <visual>
       <origin xyz="0 -0.029 0" rpy="0 0 0"/>
       <geometry>
@@ -322,7 +322,7 @@
       </geometry>
     </collision>
   </link>
-  <joint name="wrist_3_link_ROBOTIQ_3f_Gripper_joint" type="fixed">
+  <joint name="wrist_3_link_ROBOTIQ 3f Gripper_joint" type="fixed">
     <parent link="wrist_3_link"/>
     <child link="ROBOTIQ 3f Gripper"/>
     <origin xyz="0 0.14 0" rpy="0 0 0"/>
@@ -395,7 +395,7 @@
     <child link="finger_2_link_0"/>
     <axis xyz="0 1 -0.000007"/>
     <limit effort="100" lower="-0.192" upper="0.1784" velocity="100"/>
-    <origin xyz="-0.0455 0.0214 -0.036" rpy="3.141592 0.000012 1.571593"/>
+    <origin xyz="-0.0455 0.0214 -0.036" rpy="3.141592 0.000004 1.571593"/>
   </joint>
   <link name="finger_2_link_0">
     <visual>
@@ -416,7 +416,7 @@
     <child link="finger_2_link_1"/>
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="0.0495" upper="1.2218" velocity="100"/>
-    <origin xyz="0.02 0 0" rpy="0 0 0.000001"/>
+    <origin xyz="0.02 0 0" rpy="0 0 0.000005"/>
   </joint>
   <link name="finger_2_link_1">
     <visual>
@@ -479,7 +479,7 @@
     <child link="finger_1_link_0"/>
     <axis xyz="0 1 -0.000007"/>
     <limit effort="100" lower="-0.1784" upper="0.192" velocity="100"/>
-    <origin xyz="-0.0455 0.0214 0.036" rpy="3.141592 0.000008 1.571593"/>
+    <origin xyz="-0.0455 0.0214 0.036" rpy="3.141592 0.000006 1.571593"/>
   </joint>
   <link name="finger_1_link_0">
     <visual>
@@ -500,7 +500,7 @@
     <child link="finger_1_link_1"/>
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="0.0495" upper="1.2218" velocity="100"/>
-    <origin xyz="0.02 0 0" rpy="0 0 0.000019"/>
+    <origin xyz="0.02 0 0" rpy="0 0 0.000004"/>
   </joint>
   <link name="finger_1_link_1">
     <visual>
@@ -558,4 +558,11 @@
       </geometry>
     </collision>
   </link>
+  <link name="camera">
+  </link>
+  <joint name="wrist_3_link_camera_joint" type="fixed">
+    <parent link="wrist_3_link"/>
+    <child link="camera"/>
+    <origin xyz="0 0.1 0" rpy="-1.570796 0 -1.570796"/>
+  </joint>
 </robot>
